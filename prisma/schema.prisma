@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  entries       Entry[]
+  votes         Vote[]
+}
+
+model Entry {
+  id          String      @id @default(cuid())
+  awsMediaId  String?
+  term        String
+  description String?
+  mediaType   MediaType
+  mediaUrl    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  tags        Tag[]
+  moderation  Moderation? 
+
+  @@index([term])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  value     Int      @default(1) // 1 for upvote, -1 for downvote
+  userId    String
+  entryId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entryId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  entries   Entry[]
+  createdAt DateTime @default(now())
+}
+
+model Moderation {
+  id        String           @id @default(cuid())
+  entryId   String           @unique
+  entry     Entry            @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  status    ModerationStatus @default(PENDING)
+  confidence Confidence       @default(MEDIUM)
+  feedback  String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  FLAGGED
+  REJECTED
+}
+
+enum Confidence {
+  HIGH
+  MEDIUM
+  LOW
+}
