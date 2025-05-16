@@ -69,7 +69,7 @@ async function getEntries(searchQuery?: string | string[]) {
 export default async function Home({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   // Await searchParams before accessing its properties
   const params = await searchParams;

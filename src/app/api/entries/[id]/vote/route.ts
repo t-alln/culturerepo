@@ -14,11 +14,11 @@ const voteSchema = z.object({
 });
 
 export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Find the entry
     const entry = await db.entry.findUnique({
@@ -29,12 +29,12 @@ export async function POST(
       return NextResponse.json({ error: "Entry not found" }, { status: 404 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const { value } = voteSchema.parse(body);
 
     // Generate a consistent ID based on client IP address or use a default
     // Using IP as fallback for cookie in server-side
-    const forwardedFor = req.headers.get("x-forwarded-for");
+    const forwardedFor = request.headers.get("x-forwarded-for");
     const ip = forwardedFor ? forwardedFor.split(",")[0] : "unknown";
     const uniqueId = `anon-${ip.replace(/\./g, "-")}`;
 
