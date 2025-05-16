@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as z from "zod";
-import { cookies } from "next/headers";
-import { v4 as uuidv4 } from "uuid";
 
 const voteSchema = z.object({
   value: z.union([
